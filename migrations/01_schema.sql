@@ -1,7 +1,8 @@
--- drop table users;
--- drop table properties;
--- drop table reservations;
--- drop table property_reviews;
+-- drop table 
+-- users,
+-- properties,
+-- reservations,
+-- property_reviews;
 
 create table users (
     id serial primary key not null,
@@ -14,7 +15,7 @@ create table properties (
     id serial primary key not null,
     owner_id integer references users(id) on delete cascade,
     title text not null,
-    descriptions text not null,
+    description text not null,
     thumbnail_photo_url text not null,
     cover_photo_url text not null,
     cost_per_night integer not null,
@@ -43,7 +44,7 @@ create table property_reviews (
     reservation_id integer references reservations(id) on delete cascade,
     property_id integer references properties(id) on delete cascade,
     rating integer,
-    messages text
+    message text
 );
 
 
