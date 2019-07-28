@@ -27,7 +27,7 @@ create table properties (
     city text not null,
     province text not null,
     post_code text not null, 
-    active boolean not null
+    active boolean 
  );
 
 create table reservations (
