@@ -10,14 +10,6 @@ const pool = new Pool ( {
   password: 'password'
 });
 
-// const client = new Client ({
-//   user: 'vagrant',
-//   host: 'localhost',
-//   database: 'lightbnb',
-//   password: ''
-  
-// });
-
 
 /// Users
 
@@ -28,12 +20,12 @@ const pool = new Pool ( {
  */
    const getUserWithEmail = function(email) {
      return pool.query(`
-     SELECT * FROM users
-     WHERE email = $1
+     SELECT id,name,email,password FROM users
+     WHERE email = $1;
      `, [email])
      .then(res => {
        if (res.rows) {
-         res.rows[0];
+         return res.rows[0];
    }
    return null;
   });
@@ -47,12 +39,12 @@ const pool = new Pool ( {
  */
    const getUserWithId = function(id) {
      return pool.query(`
-     SELECT * FROM users
-     WHERE id = 1$
+     SELECT id, name, email, password FROM users
+     WHERE id = $1;
      `, [id])
      .then(res => {
        if (res.rows) {
-         res.rows[0];
+         return res.rows[0];
    }
    return null;
   });
@@ -93,10 +85,21 @@ exports.addUser = addUser;
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-// const getAllReservations = function(guest_id, limit = 10) {
-//   return getAllProperties(null, 2);
-// }
-// exports.getAllReservations = getAllReservations;
+ const getAllReservations = function(guest_id, limit = 10) {
+   return pool.query(`
+   select reservations.*,properties.*, avg(property_reviews.rating) as average_rating 
+from reservations
+
+join properties on reservations.property_id = properties.id
+join property_reviews on properties.id = property_reviews.property_id
+where end_date < now() and reservations.guest_id = $1
+group by reservations.id,properties.id
+order by reservations.start_date DESC
+LIMIT $2;
+`, [guest_id, limit])
+.then(res => res.rows);
+}
+ exports.getAllReservations = getAllReservations;
 
 /// Properties
 
