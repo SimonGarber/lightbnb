@@ -102,7 +102,16 @@ LIMIT $2;
  exports.getAllReservations = getAllReservations;
 
 /// Properties
-
+const queryOption = function (query,option, optionalQueryString) {
+  if (option && option !== '%undefined%') {
+    query.params.push(`${option}`);
+    query.queryString += optionalQueryString;
+  }
+  if (query.params.length >= 1) {
+    query.whereAnd = 'AND';
+  }
+  return query;
+}
 /**
  * Get all properties.
  * @param {{}} options An object containing query options.
@@ -110,12 +119,35 @@ LIMIT $2;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
 const getAllProperties = function(options, limit = 10) {
-  return pool.query(`
-  SELECT * FROM properties
-  LIMIT $1
-  `, [limit])
-  .then(res => res.rows)
-  }
+  let query = {};
+  query.params = [];
+  query.whereAnd = 'WHERE';
+  query.minimumHaving = '';
+  query.queryString = `
+  select  properties.*, avg(property_reviews.rating) as average_rating 
+  from properties
+  join property_reviews on property_id = properties.id
+  `;
+
+
+if (options.city) {
+  query.params.push(`%${options.city}%`);
+  query.queryString += `WHERE city LIKE $${query.params.length}`;
+}
+
+query.params.push(limit);
+query.queryString += `
+GROUP by properties.id
+ORDER by cost_per_night
+LIMIT $${query.params.length};
+`;
+console.log(query.queryString, query.params);
+
+  return pool.query(query.queryString, query.params)
+  .then(res => res.rows);
+  
+}
+  
 
 exports.getAllProperties = getAllProperties;
 
